@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <meta name="theme-color" content="#6366f1"/>
+  <meta name="theme-color" content="#f97316"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pushups"/>
@@ -14,17 +14,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f172a;
-      --surface: #1e293b;
-      --surface2: #334155;
-      --primary: #6366f1;
-      --primary-light: #818cf8;
-      --success: #22c55e;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --radius: 16px;
+      --bg:            #171412;
+      --surface:       #231f1c;
+      --surface2:      #33302c;
+      --primary:       #f97316;
+      --primary-light: #fb923c;
+      --success:       #22c55e;
+      --danger:        #ef4444;
+      --warning:       #fbbf24;
+      --text:          #faf9f7;
+      --muted:         #a09080;
+      --radius:        16px;
     }
 
     html, body {
@@ -244,8 +244,8 @@
       transition: background .15s, border-color .15s, color .15s;
     }
 
-    .quick-btn:active, .quick-btn.selected {
-      background: rgba(99,102,241,.18);
+    .quick-btn:active {
+      background: rgba(249,115,22,.18);
       border-color: var(--primary);
       color: var(--primary-light);
     }
@@ -267,7 +267,6 @@
     .stat-val { font-size: 28px; font-weight: 900; }
     .stat-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
     .stat-icon { font-size: 20px; margin-bottom: 4px; }
-
     .streak-fire { color: var(--warning); }
 
     .cal-header {
@@ -302,12 +301,11 @@
       justify-content: center;
       font-size: 13px;
       font-weight: 600;
-      position: relative;
     }
 
     .cal-day.future { color: var(--surface2); }
     .cal-day.missed { background: rgba(239,68,68,.15); color: var(--danger); }
-    .cal-day.done   { background: rgba(99,102,241,.25); color: var(--primary-light); }
+    .cal-day.done   { background: rgba(249,115,22,.22); color: var(--primary-light); }
     .cal-day.done.full { background: var(--success); color: white; }
     .cal-day.today  { outline: 2px solid var(--primary); outline-offset: 1px; }
 
@@ -390,7 +388,7 @@
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     #install-banner {
-      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      background: linear-gradient(135deg, var(--primary), #dc2626);
       border-radius: var(--radius);
       padding: 16px;
       margin-bottom: 16px;
@@ -446,10 +444,10 @@
         <button class="step-btn" id="step-plus">+</button>
       </div>
       <div class="quick-add">
-        <button class="quick-btn" data-set="5">5</button>
-        <button class="quick-btn" data-set="10">10</button>
-        <button class="quick-btn" data-set="15">15</button>
-        <button class="quick-btn" data-set="20">20</button>
+        <button class="quick-btn" data-add="5">+5</button>
+        <button class="quick-btn" data-add="10">+10</button>
+        <button class="quick-btn" data-add="15">+15</button>
+        <button class="quick-btn" data-add="20">+20</button>
       </div>
       <div class="controls">
         <button class="btn btn-success btn-full" id="add-btn">✓ Klar</button>
@@ -492,7 +490,7 @@
       <h2>Förklaring</h2>
       <div style="display:flex;flex-direction:column;gap:8px;font-size:14px">
         <div style="display:flex;align-items:center;gap:10px"><div style="width:24px;height:24px;border-radius:6px;background:var(--success)"></div> Mål uppnått</div>
-        <div style="display:flex;align-items:center;gap:10px"><div style="width:24px;height:24px;border-radius:6px;background:rgba(99,102,241,.25)"></div> Delvis gjort</div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:24px;height:24px;border-radius:6px;background:rgba(249,115,22,.22)"></div> Delvis gjort</div>
         <div style="display:flex;align-items:center;gap:10px"><div style="width:24px;height:24px;border-radius:6px;background:rgba(239,68,68,.15)"></div> Missad dag</div>
       </div>
     </div>
@@ -509,12 +507,16 @@
         </div>
         <input class="number-input" id="goal-input" type="number" min="1" max="500" value="20"/>
       </div>
-      <div class="setting-row">
+      <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:12px">
         <div>
-          <div class="setting-label">Påminnelse</div>
-          <div class="setting-sub">Tid för daglig notis</div>
+          <div class="setting-label">Påminnelser</div>
+          <div class="setting-sub">Dagliga notiser — fungerar när appen är öppen</div>
         </div>
-        <input class="number-input" id="reminder-time" type="time" style="width:100px" value="07:00"/>
+        <div id="reminder-list" style="width:100%;display:flex;flex-direction:column;gap:8px"></div>
+        <div style="display:flex;gap:8px;width:100%">
+          <input class="number-input" id="reminder-new-time" type="time" style="width:100px" value="07:00"/>
+          <button class="btn btn-primary btn-sm" id="reminder-add-btn" style="flex:1">+ Lägg till</button>
+        </div>
       </div>
       <div class="setting-row">
         <div>
@@ -567,6 +569,8 @@ const state = {
   history: store.get('history') ?? {},
   stepAmount: 10,
   sound: store.get('sound') ?? true,
+  reminders: store.get('reminders') ?? ['07:00'],
+  lastNotified: store.get('lastNotified') ?? {},
 };
 
 function todayKey() {
@@ -585,9 +589,7 @@ function setTodayCount(n) {
 function calcStreak() {
   const keys = Object.keys(state.history).sort();
   const today = todayKey();
-  let best = 0;
-  let cur = 0;
-  let prev = null;
+  let best = 0, cur = 0, prev = null;
 
   for (const k of keys) {
     const met = state.history[k] >= state.goal;
@@ -612,23 +614,18 @@ function calcStreak() {
     if (streak > 400) break;
   }
 
-  const totalDays = Object.keys(state.history).filter(k => state.history[k] >= state.goal).length;
-  return { streak, best, totalDays };
+  return { streak, best, totalDays: Object.keys(state.history).filter(k => state.history[k] >= state.goal).length };
 }
 
 function updateRing() {
   const count = todayCount();
   const pct = Math.min(count / state.goal, 1);
-  const offset = 2 * Math.PI * 80 * (1 - pct);
-
   const ring = document.getElementById('ring');
-  ring.style.strokeDashoffset = offset;
+  ring.style.strokeDashoffset = 2 * Math.PI * 80 * (1 - pct);
   ring.classList.toggle('complete', count >= state.goal);
-
   document.getElementById('count-display').textContent = count;
   document.getElementById('goal-display').textContent = `av ${state.goal}`;
   document.getElementById('done-badge').classList.toggle('show', count >= state.goal);
-
   const { streak, best, totalDays } = calcStreak();
   document.getElementById('streak-val').textContent = streak;
   document.getElementById('best-val').textContent = best;
@@ -643,8 +640,7 @@ function playSuccess() {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.value = freq;
-      osc.type = 'sine';
+      osc.frequency.value = freq; osc.type = 'sine';
       gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.2);
       osc.start(ctx.currentTime + i * 0.1);
@@ -679,25 +675,21 @@ function addPushups(n) {
 }
 
 document.getElementById('step-plus').addEventListener('click', () => {
-  state.stepAmount = Math.min(state.stepAmount + 1, 100);
+  state.stepAmount = Math.min(state.stepAmount + 1, 999);
   document.getElementById('step-val').textContent = state.stepAmount;
-  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
 });
 
 document.getElementById('step-minus').addEventListener('click', () => {
   state.stepAmount = Math.max(state.stepAmount - 1, 1);
   document.getElementById('step-val').textContent = state.stepAmount;
-  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
 });
 
 document.getElementById('add-btn').addEventListener('click', () => addPushups(state.stepAmount));
 
 document.querySelectorAll('.quick-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    state.stepAmount = parseInt(btn.dataset.set);
+    state.stepAmount = Math.min(state.stepAmount + parseInt(btn.dataset.add), 999);
     document.getElementById('step-val').textContent = state.stepAmount;
-    document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
   });
 });
 
@@ -721,84 +713,96 @@ function renderCalendar() {
   const today = todayKey();
   const firstDay = new Date(calYear, calMonth, 1);
   const lastDay = new Date(calYear, calMonth + 1, 0);
-
   const monthNames = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
   document.getElementById('cal-month-label').textContent = `${monthNames[calMonth]} ${calYear}`;
-
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
-
   ['M','T','O','T','F','L','S'].forEach(d => {
     const el = document.createElement('div');
-    el.className = 'cal-day-name';
-    el.textContent = d;
+    el.className = 'cal-day-name'; el.textContent = d;
     grid.appendChild(el);
   });
-
   let startDow = firstDay.getDay();
   startDow = startDow === 0 ? 6 : startDow - 1;
-
   for (let i = 0; i < startDow; i++) {
     const el = document.createElement('div');
-    el.className = 'cal-day empty';
-    grid.appendChild(el);
+    el.className = 'cal-day empty'; grid.appendChild(el);
   }
-
   for (let d = 1; d <= lastDay.getDate(); d++) {
     const key = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const el = document.createElement('div');
-    el.className = 'cal-day';
-    el.textContent = d;
-
+    el.className = 'cal-day'; el.textContent = d;
     const count = state.history[key] ?? 0;
     const isFuture = key > today;
-    const isToday = key === today;
-
-    if (isToday) el.classList.add('today');
-
+    if (key === today) el.classList.add('today');
     if (!isFuture) {
-      if (count >= state.goal) {
-        el.classList.add('done', 'full');
-        el.title = `${count} pushups ✓`;
-      } else if (count > 0) {
-        el.classList.add('done');
-        el.title = `${count} pushups`;
-      } else if (key < today) {
-        el.classList.add('missed');
-      }
-    } else {
-      el.classList.add('future');
-    }
-
+      if (count >= state.goal) { el.classList.add('done','full'); el.title = `${count} pushups ✓`; }
+      else if (count > 0) { el.classList.add('done'); el.title = `${count} pushups`; }
+      else if (key < today) el.classList.add('missed');
+    } else { el.classList.add('future'); }
     grid.appendChild(el);
   }
 }
 
 document.getElementById('cal-prev').addEventListener('click', () => {
-  calMonth--;
-  if (calMonth < 0) { calMonth = 11; calYear--; }
-  renderCalendar();
+  calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar();
 });
-
 document.getElementById('cal-next').addEventListener('click', () => {
-  calMonth++;
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  renderCalendar();
+  calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar();
 });
 
 document.getElementById('goal-input').addEventListener('change', e => {
   const v = Math.max(1, Math.min(500, parseInt(e.target.value) || 20));
-  e.target.value = v;
-  state.goal = v;
-  store.set('goal', v);
-  updateRing();
+  e.target.value = v; state.goal = v; store.set('goal', v); updateRing();
   showToast(`Mål satt till ${v} pushups`);
 });
 
 document.getElementById('sound-toggle').addEventListener('change', e => {
-  state.sound = e.target.checked;
-  store.set('sound', state.sound);
+  state.sound = e.target.checked; store.set('sound', state.sound);
 });
+
+function renderReminders() {
+  const list = document.getElementById('reminder-list');
+  list.innerHTML = '';
+  state.reminders.forEach((time, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:10px;padding:10px 14px;';
+    row.innerHTML = `<span style="font-weight:700;font-size:16px">${time}</span><button style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px" data-i="${i}">✕</button>`;
+    row.querySelector('button').addEventListener('click', () => {
+      state.reminders.splice(i, 1);
+      store.set('reminders', state.reminders);
+      renderReminders();
+    });
+    list.appendChild(row);
+  });
+}
+
+document.getElementById('reminder-add-btn').addEventListener('click', () => {
+  const input = document.getElementById('reminder-new-time');
+  const t = input.value;
+  if (!t || state.reminders.includes(t)) return;
+  state.reminders.push(t);
+  state.reminders.sort();
+  store.set('reminders', state.reminders);
+  renderReminders();
+  if (Notification.permission === 'default') Notification.requestPermission();
+});
+
+function checkReminders() {
+  if (!state.reminders.length || Notification.permission !== 'granted') return;
+  const now = new Date();
+  const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const today = todayKey();
+  state.reminders.forEach(t => {
+    if (t === hhmm && state.lastNotified[t] !== today && todayCount() < state.goal) {
+      new Notification('Pushup Tracker 💪', { body: 'Dags för dina pushups!', icon: '/test/icon-192.svg' });
+      state.lastNotified[t] = today;
+      store.set('lastNotified', state.lastNotified);
+    }
+  });
+}
+
+setInterval(checkReminders, 60000);
 
 document.getElementById('export-btn').addEventListener('click', () => {
   const data = JSON.stringify({ goal: state.goal, history: state.history }, null, 2);
@@ -812,10 +816,8 @@ document.getElementById('export-btn').addEventListener('click', () => {
 
 document.getElementById('clear-btn').addEventListener('click', () => {
   if (!confirm('Rensa ALL historik? Det går inte att ångra.')) return;
-  state.history = {};
-  store.set('history', {});
-  updateRing();
-  renderCalendar();
+  state.history = {}; store.set('history', {});
+  updateRing(); renderCalendar();
   showToast('All data rensad');
 });
 
@@ -833,16 +835,13 @@ function updateDateDisplay() {
   const now = new Date();
   const days = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
   const months = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
-  document.getElementById('today-date').textContent =
-    `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+  document.getElementById('today-date').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
 }
 
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const dismissed = store.get('install-dismissed');
-  if (!dismissed) document.getElementById('install-banner').classList.add('show');
+  e.preventDefault(); deferredPrompt = e;
+  if (!store.get('install-dismissed')) document.getElementById('install-banner').classList.add('show');
 });
 
 async function triggerInstall() {
@@ -867,17 +866,14 @@ function init() {
   const now = new Date();
   calYear = now.getFullYear();
   calMonth = now.getMonth();
-
   document.getElementById('goal-input').value = state.goal;
   document.getElementById('sound-toggle').checked = state.sound;
   document.getElementById('step-val').textContent = state.stepAmount;
-
   updateDateDisplay();
   updateRing();
-
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
+  renderReminders();
+  if (state.reminders.length && Notification.permission === 'default') Notification.requestPermission();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
 init();
