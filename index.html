@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <meta name="theme-color" content="#6366f1"/>
+  <meta name="theme-color" content="#f97316"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pushups"/>
@@ -14,17 +14,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f172a;
-      --surface: #1e293b;
-      --surface2: #334155;
-      --primary: #6366f1;
-      --primary-light: #818cf8;
-      --success: #22c55e;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --radius: 16px;
+      --bg:            #171412;
+      --surface:       #231f1c;
+      --surface2:      #33302c;
+      --primary:       #f97316;
+      --primary-light: #fb923c;
+      --success:       #22c55e;
+      --danger:        #ef4444;
+      --warning:       #fbbf24;
+      --text:          #faf9f7;
+      --muted:         #a09080;
+      --radius:        16px;
     }
 
     html, body {
@@ -251,8 +251,8 @@
       transition: background .15s, border-color .15s, color .15s;
     }
 
-    .quick-btn:active, .quick-btn.selected {
-      background: rgba(99,102,241,.18);
+    .quick-btn:active {
+      background: rgba(249,115,22,.18);
       border-color: var(--primary);
       color: var(--primary-light);
     }
@@ -318,7 +318,7 @@
     .cal-day.empty { }
     .cal-day.future { color: var(--surface2); }
     .cal-day.missed { background: rgba(239,68,68,.15); color: var(--danger); }
-    .cal-day.done   { background: rgba(99,102,241,.25); color: var(--primary-light); }
+    .cal-day.done   { background: rgba(249,115,22,.22); color: var(--primary-light); }
     .cal-day.done.full { background: var(--success); color: white; }
     .cal-day.today  { outline: 2px solid var(--primary); outline-offset: 1px; }
 
@@ -463,10 +463,10 @@
         <button class="step-btn" id="step-plus">+</button>
       </div>
       <div class="quick-add">
-        <button class="quick-btn" data-set="5">5</button>
-        <button class="quick-btn" data-set="10">10</button>
-        <button class="quick-btn" data-set="15">15</button>
-        <button class="quick-btn" data-set="20">20</button>
+        <button class="quick-btn" data-add="5">+5</button>
+        <button class="quick-btn" data-add="10">+10</button>
+        <button class="quick-btn" data-add="15">+15</button>
+        <button class="quick-btn" data-add="20">+20</button>
       </div>
       <div class="controls">
         <button class="btn btn-success btn-full" id="add-btn">✓ Klar</button>
@@ -528,12 +528,16 @@
         </div>
         <input class="number-input" id="goal-input" type="number" min="1" max="500" value="20"/>
       </div>
-      <div class="setting-row">
+      <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:12px">
         <div>
-          <div class="setting-label">Påminnelse</div>
-          <div class="setting-sub">Tid för daglig notis</div>
+          <div class="setting-label">Påminnelser</div>
+          <div class="setting-sub">Dagliga notiser — fungerar när appen är öppen</div>
         </div>
-        <input class="number-input" id="reminder-time" type="time" style="width:100px" value="07:00"/>
+        <div id="reminder-list" style="width:100%;display:flex;flex-direction:column;gap:8px"></div>
+        <div style="display:flex;gap:8px;width:100%">
+          <input class="number-input" id="reminder-new-time" type="time" style="width:100px" value="07:00"/>
+          <button class="btn btn-primary btn-sm" id="reminder-add-btn" style="flex:1">+ Lägg till</button>
+        </div>
       </div>
       <div class="setting-row">
         <div>
@@ -586,9 +590,11 @@ const store = {
 // ── State ──
 const state = {
   goal: store.get('goal') ?? 20,
-  history: store.get('history') ?? {},   // { 'YYYY-MM-DD': count }
+  history: store.get('history') ?? {},
   stepAmount: 10,
   sound: store.get('sound') ?? true,
+  reminders: store.get('reminders') ?? ['07:00'],
+  lastNotified: store.get('lastNotified') ?? {},
 };
 
 function todayKey() {
@@ -713,25 +719,21 @@ function addPushups(n) {
 
 // ── Today page events ──
 document.getElementById('step-plus').addEventListener('click', () => {
-  state.stepAmount = Math.min(state.stepAmount + 1, 100);
+  state.stepAmount = Math.min(state.stepAmount + 1, 999);
   document.getElementById('step-val').textContent = state.stepAmount;
-  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
 });
 
 document.getElementById('step-minus').addEventListener('click', () => {
   state.stepAmount = Math.max(state.stepAmount - 1, 1);
   document.getElementById('step-val').textContent = state.stepAmount;
-  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
 });
 
 document.getElementById('add-btn').addEventListener('click', () => addPushups(state.stepAmount));
 
 document.querySelectorAll('.quick-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    state.stepAmount = parseInt(btn.dataset.set);
+    state.stepAmount = Math.min(state.stepAmount + parseInt(btn.dataset.add), 999);
     document.getElementById('step-val').textContent = state.stepAmount;
-    document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
   });
 });
 
@@ -838,6 +840,51 @@ document.getElementById('sound-toggle').addEventListener('change', e => {
   store.set('sound', state.sound);
 });
 
+// ── Reminders ──
+function renderReminders() {
+  const list = document.getElementById('reminder-list');
+  list.innerHTML = '';
+  state.reminders.forEach((time, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:10px;padding:10px 14px;';
+    row.innerHTML = `<span style="font-weight:700;font-size:16px">${time}</span><button style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px" data-i="${i}">✕</button>`;
+    row.querySelector('button').addEventListener('click', () => {
+      state.reminders.splice(i, 1);
+      store.set('reminders', state.reminders);
+      renderReminders();
+    });
+    list.appendChild(row);
+  });
+}
+
+document.getElementById('reminder-add-btn').addEventListener('click', () => {
+  const input = document.getElementById('reminder-new-time');
+  const t = input.value;
+  if (!t || state.reminders.includes(t)) return;
+  state.reminders.push(t);
+  state.reminders.sort();
+  store.set('reminders', state.reminders);
+  renderReminders();
+  if (Notification.permission === 'default') Notification.requestPermission();
+});
+
+function checkReminders() {
+  if (!state.reminders.length) return;
+  if (Notification.permission !== 'granted') return;
+  const now = new Date();
+  const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const today = todayKey();
+  state.reminders.forEach(t => {
+    if (t === hhmm && state.lastNotified[t] !== today && todayCount() < state.goal) {
+      new Notification('Pushup Tracker 💪', { body: 'Dags för dina pushups!', icon: '/test/icon-192.svg' });
+      state.lastNotified[t] = today;
+      store.set('lastNotified', state.lastNotified);
+    }
+  });
+}
+
+setInterval(checkReminders, 60000);
+
 document.getElementById('export-btn').addEventListener('click', () => {
   const data = JSON.stringify({ goal: state.goal, history: state.history }, null, 2);
   const blob = new Blob([data], { type: 'application/json' });
@@ -925,6 +972,10 @@ function init() {
 
   updateDateDisplay();
   updateRing();
+  renderReminders();
+  if (state.reminders.length && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
