@@ -185,58 +185,77 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 16px;
-      margin-bottom: 12px;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+
+    .stepper-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--surface2);
+      border-radius: 16px;
+      padding: 12px 28px;
+      min-width: 110px;
     }
 
     .stepper-val {
-      font-size: 36px;
+      font-size: 56px;
       font-weight: 900;
-      min-width: 60px;
-      text-align: center;
+      line-height: 1;
+    }
+
+    .stepper-unit {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      margin-top: 2px;
     }
 
     .step-btn {
-      width: 44px;
-      height: 44px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       border: 2px solid var(--primary);
       background: none;
       color: var(--primary);
-      font-size: 24px;
+      font-size: 28px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background .2s;
+      transition: background .15s, color .15s;
     }
 
     .step-btn:active { background: var(--primary); color: white; }
 
-    /* Quick-add row */
+    /* Quick-set row */
     .quick-add {
       display: flex;
       gap: 8px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
     }
 
     .quick-btn {
       flex: 1;
-      min-width: 60px;
-      padding: 12px 8px;
-      border-radius: 10px;
-      border: none;
+      padding: 11px 4px;
+      border-radius: 12px;
+      border: 2px solid var(--surface2);
       background: var(--surface2);
-      color: var(--text);
+      color: var(--muted);
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
-      transition: background .15s;
+      transition: background .15s, border-color .15s, color .15s;
     }
 
-    .quick-btn:active { background: var(--primary); }
+    .quick-btn:active, .quick-btn.selected {
+      background: rgba(99,102,241,.18);
+      border-color: var(--primary);
+      color: var(--primary-light);
+    }
 
     /* ── Streak stats ── */
     .stats-row {
@@ -248,8 +267,9 @@
     .stat-card {
       background: var(--surface);
       border-radius: var(--radius);
-      padding: 16px 10px;
+      padding: 18px 10px;
       text-align: center;
+      border: 1px solid var(--surface2);
     }
 
     .stat-val { font-size: 28px; font-weight: 900; }
@@ -433,22 +453,25 @@
     </div>
 
     <div class="card">
-      <h2>Lägg till pushups</h2>
+      <h2>Logga pushups</h2>
       <div class="stepper">
         <button class="step-btn" id="step-minus">−</button>
-        <span class="stepper-val" id="step-val">10</span>
+        <div class="stepper-center">
+          <span class="stepper-val" id="step-val">10</span>
+          <span class="stepper-unit">pushups</span>
+        </div>
         <button class="step-btn" id="step-plus">+</button>
       </div>
       <div class="quick-add">
-        <button class="quick-btn" data-add="5">+5</button>
-        <button class="quick-btn" data-add="10">+10</button>
-        <button class="quick-btn" data-add="15">+15</button>
-        <button class="quick-btn" data-add="20">+20</button>
+        <button class="quick-btn" data-set="5">5</button>
+        <button class="quick-btn" data-set="10">10</button>
+        <button class="quick-btn" data-set="15">15</button>
+        <button class="quick-btn" data-set="20">20</button>
       </div>
       <div class="controls">
-        <button class="btn btn-primary btn-full" id="add-btn">Lägg till</button>
-        <button class="btn btn-secondary" id="undo-btn">Ångra</button>
-        <button class="btn btn-danger" id="reset-btn">Nollställ</button>
+        <button class="btn btn-success btn-full" id="add-btn">✓ Klar</button>
+        <button class="btn btn-secondary btn-sm" id="undo-btn">Ångra</button>
+        <button class="btn btn-secondary btn-sm" id="reset-btn">Nollställ</button>
       </div>
     </div>
 
@@ -523,21 +546,6 @@
           <div class="toggle-thumb"></div>
         </label>
       </div>
-    </div>
-
-    <div class="card">
-      <h2>Hemskärm</h2>
-      <p style="font-size:14px;color:var(--muted);margin-bottom:14px">
-        Lägg till appen på din hemskärm för enkel åtkomst varje morgon.
-      </p>
-      <div style="background:var(--surface2);border-radius:12px;padding:14px;font-size:13px;line-height:1.7;color:var(--muted)">
-        <strong style="color:var(--text);display:block;margin-bottom:6px">📱 iPhone / iPad (Safari)</strong>
-        Tryck på <strong>Dela-ikonen</strong> (rutan med pilen uppåt) → scrolla ned → tryck <strong>"Lägg till på hemskärmen"</strong> → tryck <strong>"Lägg till"</strong>.
-        <br/><br/>
-        <strong style="color:var(--text);display:block;margin-bottom:6px">🤖 Android (Chrome)</strong>
-        Tryck på <strong>⋮ menyn</strong> uppe till höger → tryck <strong>"Lägg till på startskärmen"</strong> → tryck <strong>"Installera"</strong>.
-      </div>
-      <button class="btn btn-primary" style="margin-top:14px;width:100%" id="settings-install-btn">Installera nu (Android/Chrome)</button>
     </div>
 
     <div class="card">
@@ -707,17 +715,24 @@ function addPushups(n) {
 document.getElementById('step-plus').addEventListener('click', () => {
   state.stepAmount = Math.min(state.stepAmount + 1, 100);
   document.getElementById('step-val').textContent = state.stepAmount;
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
 });
 
 document.getElementById('step-minus').addEventListener('click', () => {
   state.stepAmount = Math.max(state.stepAmount - 1, 1);
   document.getElementById('step-val').textContent = state.stepAmount;
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
 });
 
 document.getElementById('add-btn').addEventListener('click', () => addPushups(state.stepAmount));
 
 document.querySelectorAll('.quick-btn').forEach(btn => {
-  btn.addEventListener('click', () => addPushups(parseInt(btn.dataset.add)));
+  btn.addEventListener('click', () => {
+    state.stepAmount = parseInt(btn.dataset.set);
+    document.getElementById('step-val').textContent = state.stepAmount;
+    document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
 });
 
 document.getElementById('undo-btn').addEventListener('click', () => {
@@ -890,7 +905,6 @@ async function triggerInstall() {
 }
 
 document.getElementById('install-btn').addEventListener('click', triggerInstall);
-document.getElementById('settings-install-btn').addEventListener('click', triggerInstall);
 document.getElementById('install-dismiss').addEventListener('click', () => {
   document.getElementById('install-banner').classList.remove('show');
   store.set('install-dismissed', true);
