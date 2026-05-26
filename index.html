@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="theme-color" content="#6366f1"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Pushups"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon-192.svg"/>
+  <title>Pushup Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface2: #334155;
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --radius: 16px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overscroll-behavior: none;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* ── Nav ── */
+    nav {
+      display: flex;
+      justify-content: space-around;
+      background: var(--surface);
+      border-top: 1px solid var(--surface2);
+      padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      padding: 4px 20px;
+      border-radius: 10px;
+      transition: color .2s;
+    }
+
+    nav button.active { color: var(--primary-light); }
+    nav button span.icon { font-size: 22px; }
+
+    /* ── Pages ── */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 16px 90px;
+      padding-top: calc(16px + env(safe-area-inset-top));
+    }
+
+    .page { display: none; animation: fadeIn .2s ease; }
+    .page.active { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    h1 { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+    h2 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+    .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+    /* ── Today page ── */
+    .goal-ring-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 8px 0 24px;
+    }
+
+    .ring-container {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin-bottom: 12px;
+    }
+
+    .ring-container svg { transform: rotate(-90deg); }
+
+    .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 14; }
+    .ring-fg {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 14;
+      stroke-linecap: round;
+      stroke-dasharray: 502;
+      stroke-dashoffset: 502;
+      transition: stroke-dashoffset .5s ease, stroke .3s;
+    }
+
+    .ring-fg.complete { stroke: var(--success); }
+
+    .ring-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring-count { font-size: 48px; font-weight: 900; line-height: 1; }
+    .ring-goal  { font-size: 14px; color: var(--muted); }
+
+    .done-badge {
+      background: var(--success);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 14px;
+      display: none;
+    }
+
+    .done-badge.show { display: inline-block; }
+
+    /* ── Counter controls ── */
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .1s, opacity .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:active { transform: scale(.95); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: var(--surface2); color: var(--text); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-sm { padding: 10px; font-size: 14px; }
+    .btn-full { grid-column: 1 / -1; }
+
+    /* Stepper for custom input */
+    .stepper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .stepper-val {
+      font-size: 36px;
+      font-weight: 900;
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .step-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      background: none;
+      color: var(--primary);
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s;
+    }
+
+    .step-btn:active { background: var(--primary); color: white; }
+
+    /* Quick-add row */
+    .quick-add {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .quick-btn {
+      flex: 1;
+      min-width: 60px;
+      padding: 12px 8px;
+      border-radius: 10px;
+      border: none;
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .quick-btn:active { background: var(--primary); }
+
+    /* ── Streak stats ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px 10px;
+      text-align: center;
+    }
+
+    .stat-val { font-size: 28px; font-weight: 900; }
+    .stat-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .stat-icon { font-size: 20px; margin-bottom: 4px; }
+
+    .streak-fire { color: var(--warning); }
+
+    /* ── Calendar ── */
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .cal-nav { background: none; border: none; color: var(--text); font-size: 22px; cursor: pointer; padding: 4px 10px; }
+
+    .cal-month { font-size: 18px; font-weight: 700; }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .cal-day-name {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      padding-bottom: 4px;
+    }
+
+    .cal-day {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      position: relative;
+    }
+
+    .cal-day.empty { }
+    .cal-day.future { color: var(--surface2); }
+    .cal-day.missed { background: rgba(239,68,68,.15); color: var(--danger); }
+    .cal-day.done   { background: rgba(99,102,241,.25); color: var(--primary-light); }
+    .cal-day.done.full { background: var(--success); color: white; }
+    .cal-day.today  { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+    /* ── Settings ── */
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--surface2);
+    }
+
+    .setting-row:last-child { border-bottom: none; }
+
+    .setting-label { font-weight: 600; }
+    .setting-sub   { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    .number-input {
+      background: var(--surface2);
+      border: none;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 10px;
+      width: 80px;
+      text-align: center;
+    }
+
+    .number-input:focus { outline: 2px solid var(--primary); }
+
+    /* Toggle */
+    .toggle {
+      position: relative;
+      width: 46px;
+      height: 26px;
+      cursor: pointer;
+    }
+
+    .toggle input { opacity: 0; width: 0; height: 0; }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--surface2);
+      border-radius: 13px;
+      transition: background .2s;
+    }
+
+    .toggle input:checked + .toggle-track { background: var(--primary); }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: white;
+      transition: left .2s;
+    }
+
+    .toggle input:checked ~ .toggle-thumb { left: 23px; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity .3s, transform .3s;
+      z-index: 999;
+      white-space: nowrap;
+    }
+
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Install banner ── */
+    #install-banner {
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    #install-banner.show { display: block; }
+    #install-banner h3 { font-size: 15px; margin-bottom: 4px; }
+    #install-banner p  { font-size: 13px; opacity: .85; margin-bottom: 12px; }
+    #install-banner .banner-btns { display: flex; gap: 8px; }
+    .btn-white { background: white; color: var(--primary); }
+    .btn-ghost { background: rgba(255,255,255,.2); color: white; border: 1px solid rgba(255,255,255,.3); }
+  </style>
+</head>
+<body>
+
+<main>
+  <!-- ── TODAY ── -->
+  <div class="page active" id="page-today">
+    <h1>Pushup Tracker 💪</h1>
+    <p class="subtitle" id="today-date"></p>
+
+    <div id="install-banner">
+      <h3>Lägg till på hemskärmen</h3>
+      <p>Installera appen för snabb åtkomst varje morgon.</p>
+      <div class="banner-btns">
+        <button class="btn btn-white btn-sm" id="install-btn">Installera</button>
+        <button class="btn btn-ghost btn-sm" id="install-dismiss">Senare</button>
+      </div>
+    </div>
+
+    <div class="goal-ring-wrap">
+      <div class="ring-container">
+        <svg width="200" height="200" viewBox="0 0 200 200">
+          <circle class="ring-bg" cx="100" cy="100" r="80"/>
+          <circle class="ring-fg" id="ring" cx="100" cy="100" r="80"/>
+        </svg>
+        <div class="ring-text">
+          <span class="ring-count" id="count-display">0</span>
+          <span class="ring-goal" id="goal-display">av 20</span>
+        </div>
+      </div>
+      <div class="done-badge" id="done-badge">✓ Klart för idag!</div>
+    </div>
+
+    <div class="card">
+      <h2>Lägg till pushups</h2>
+      <div class="stepper">
+        <button class="step-btn" id="step-minus">−</button>
+        <span class="stepper-val" id="step-val">10</span>
+        <button class="step-btn" id="step-plus">+</button>
+      </div>
+      <div class="quick-add">
+        <button class="quick-btn" data-add="5">+5</button>
+        <button class="quick-btn" data-add="10">+10</button>
+        <button class="quick-btn" data-add="15">+15</button>
+        <button class="quick-btn" data-add="20">+20</button>
+      </div>
+      <div class="controls">
+        <button class="btn btn-primary btn-full" id="add-btn">Lägg till</button>
+        <button class="btn btn-secondary" id="undo-btn">Ångra</button>
+        <button class="btn btn-danger" id="reset-btn">Nollställ</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon streak-fire">🔥</div>
+        <div class="stat-val" id="streak-val">0</div>
+        <div class="stat-lbl">Streak</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-val" id="best-val">0</div>
+        <div class="stat-lbl">Bäst</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-val" id="total-val">0</div>
+        <div class="stat-lbl">Dagar</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CALENDAR ── -->
+  <div class="page" id="page-calendar">
+    <h1>Kalender</h1>
+    <p class="subtitle">Se dina genomförda dagar</p>
+    <div class="card">
+      <div class="cal-header">
+        <button class="cal-nav" id="cal-prev">‹</button>
+        <span class="cal-month" id="cal-month-label"></span>
+        <button class="cal-nav" id="cal-next">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+    <div class="card">
+      <h2>Förklaring</h2>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:14px">
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:24px;height:24px;border-radius:6px;background:var(--success)"></div> Mål uppnått</div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:24px;height:24px;border-radius:6px;background:rgba(99,102,241,.25)"></div> Delvis gjort</div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:24px;height:24px;border-radius:6px;background:rgba(239,68,68,.15)"></div> Missad dag</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SETTINGS ── -->
+  <div class="page" id="page-settings">
+    <h1>Inställningar</h1>
+    <p class="subtitle">Anpassa din träning</p>
+    <div class="card">
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Dagligt mål</div>
+          <div class="setting-sub">Antal pushups per dag</div>
+        </div>
+        <input class="number-input" id="goal-input" type="number" min="1" max="500" value="20"/>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Påminnelse</div>
+          <div class="setting-sub">Tid för daglig notis</div>
+        </div>
+        <input class="number-input" id="reminder-time" type="time" style="width:100px" value="07:00"/>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Ljud vid mål</div>
+          <div class="setting-sub">Spela upp en signal</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="sound-toggle" checked/>
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Hemskärm</h2>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:14px">
+        Lägg till appen på din hemskärm för enkel åtkomst varje morgon.
+      </p>
+      <div style="background:var(--surface2);border-radius:12px;padding:14px;font-size:13px;line-height:1.7;color:var(--muted)">
+        <strong style="color:var(--text);display:block;margin-bottom:6px">📱 iPhone / iPad (Safari)</strong>
+        Tryck på <strong>Dela-ikonen</strong> (rutan med pilen uppåt) → scrolla ned → tryck <strong>"Lägg till på hemskärmen"</strong> → tryck <strong>"Lägg till"</strong>.
+        <br/><br/>
+        <strong style="color:var(--text);display:block;margin-bottom:6px">🤖 Android (Chrome)</strong>
+        Tryck på <strong>⋮ menyn</strong> uppe till höger → tryck <strong>"Lägg till på startskärmen"</strong> → tryck <strong>"Installera"</strong>.
+      </div>
+      <button class="btn btn-primary" style="margin-top:14px;width:100%" id="settings-install-btn">Installera nu (Android/Chrome)</button>
+    </div>
+
+    <div class="card">
+      <h2>Data</h2>
+      <div class="controls">
+        <button class="btn btn-secondary" id="export-btn">Exportera data</button>
+        <button class="btn btn-danger" id="clear-btn">Rensa allt</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Bottom nav -->
+<nav>
+  <button class="active" data-page="today">
+    <span class="icon">🏠</span>
+    Idag
+  </button>
+  <button data-page="calendar">
+    <span class="icon">📅</span>
+    Kalender
+  </button>
+  <button data-page="settings">
+    <span class="icon">⚙️</span>
+    Inställningar
+  </button>
+</nav>
+
+<div id="toast"></div>
+
+<script>
+// ── Storage helpers ──
+const store = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+};
+
+// ── State ──
+const state = {
+  goal: store.get('goal') ?? 20,
+  history: store.get('history') ?? {},   // { 'YYYY-MM-DD': count }
+  stepAmount: 10,
+  sound: store.get('sound') ?? true,
+};
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function todayCount() {
+  return state.history[todayKey()] ?? 0;
+}
+
+function setTodayCount(n) {
+  state.history[todayKey()] = Math.max(0, n);
+  store.set('history', state.history);
+}
+
+// ── Streak calculation ──
+function calcStreak() {
+  const keys = Object.keys(state.history).sort();
+  const today = todayKey();
+  let streak = 0;
+  let best = 0;
+  let cur = 0;
+  let prev = null;
+
+  for (const k of keys) {
+    const met = state.history[k] >= state.goal;
+    if (met) {
+      if (prev) {
+        const d1 = new Date(prev), d2 = new Date(k);
+        const diff = (d2 - d1) / 86400000;
+        if (diff === 1) { cur++; } else { cur = 1; }
+      } else { cur = 1; }
+      if (cur > best) best = cur;
+    } else { cur = 0; }
+    prev = k;
+  }
+
+  // current streak: count backwards from today
+  streak = 0;
+  const checkDate = new Date(today);
+  while (true) {
+    const k = checkDate.toISOString().slice(0, 10);
+    const met = (state.history[k] ?? 0) >= state.goal;
+    if (!met && k !== today) break;
+    if (met) streak++;
+    checkDate.setDate(checkDate.getDate() - 1);
+    if (streak > 400) break;
+  }
+
+  const totalDays = Object.keys(state.history).filter(k => state.history[k] >= state.goal).length;
+  return { streak, best, totalDays };
+}
+
+// ── Ring update ──
+function updateRing() {
+  const count = todayCount();
+  const pct = Math.min(count / state.goal, 1);
+  const circumference = 2 * Math.PI * 80; // 502.65
+  const offset = circumference * (1 - pct);
+
+  const ring = document.getElementById('ring');
+  ring.style.strokeDashoffset = offset;
+  ring.classList.toggle('complete', count >= state.goal);
+
+  document.getElementById('count-display').textContent = count;
+  document.getElementById('goal-display').textContent = `av ${state.goal}`;
+
+  const badge = document.getElementById('done-badge');
+  badge.classList.toggle('show', count >= state.goal);
+
+  const { streak, best, totalDays } = calcStreak();
+  document.getElementById('streak-val').textContent = streak;
+  document.getElementById('best-val').textContent = best;
+  document.getElementById('total-val').textContent = totalDays;
+}
+
+// ── Sound ──
+function playSuccess() {
+  if (!state.sound) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [523, 659, 784, 1047].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.2);
+      osc.start(ctx.currentTime + i * 0.1);
+      osc.stop(ctx.currentTime + i * 0.1 + 0.3);
+    });
+  } catch {}
+}
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── Add pushups ──
+let prevCount = 0;
+
+function addPushups(n) {
+  const before = todayCount();
+  prevCount = before;
+  const after = before + n;
+  setTodayCount(after);
+  updateRing();
+  if (before < state.goal && after >= state.goal) {
+    showToast('🎉 Mål uppnått! Bra jobbat!');
+    playSuccess();
+  } else {
+    showToast(`+${n} pushups`);
+  }
+}
+
+// ── Today page events ──
+document.getElementById('step-plus').addEventListener('click', () => {
+  state.stepAmount = Math.min(state.stepAmount + 1, 100);
+  document.getElementById('step-val').textContent = state.stepAmount;
+});
+
+document.getElementById('step-minus').addEventListener('click', () => {
+  state.stepAmount = Math.max(state.stepAmount - 1, 1);
+  document.getElementById('step-val').textContent = state.stepAmount;
+});
+
+document.getElementById('add-btn').addEventListener('click', () => addPushups(state.stepAmount));
+
+document.querySelectorAll('.quick-btn').forEach(btn => {
+  btn.addEventListener('click', () => addPushups(parseInt(btn.dataset.add)));
+});
+
+document.getElementById('undo-btn').addEventListener('click', () => {
+  setTodayCount(prevCount);
+  updateRing();
+  showToast('Ångrad');
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (!confirm('Nollställ dagens räknare?')) return;
+  prevCount = todayCount();
+  setTodayCount(0);
+  updateRing();
+  showToast('Nollställd');
+});
+
+// ── Calendar ──
+let calYear, calMonth;
+
+function renderCalendar() {
+  const now = new Date();
+  const today = todayKey();
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay = new Date(calYear, calMonth + 1, 0);
+
+  const monthNames = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
+  document.getElementById('cal-month-label').textContent = `${monthNames[calMonth]} ${calYear}`;
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  ['M','T','O','T','F','L','S'].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-day-name';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  // Monday-first: getDay() 0=Sun → 6
+  let startDow = firstDay.getDay(); // 0=Sun
+  startDow = startDow === 0 ? 6 : startDow - 1;
+
+  for (let i = 0; i < startDow; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day empty';
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const key = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const el = document.createElement('div');
+    el.className = 'cal-day';
+    el.textContent = d;
+
+    const count = state.history[key] ?? 0;
+    const isFuture = key > today;
+    const isToday = key === today;
+
+    if (isToday) el.classList.add('today');
+
+    if (!isFuture) {
+      if (count >= state.goal) {
+        el.classList.add('done', 'full');
+        el.title = `${count} pushups ✓`;
+      } else if (count > 0) {
+        el.classList.add('done');
+        el.title = `${count} pushups`;
+      } else if (key < today) {
+        el.classList.add('missed');
+      }
+    } else {
+      el.classList.add('future');
+    }
+
+    grid.appendChild(el);
+  }
+}
+
+document.getElementById('cal-prev').addEventListener('click', () => {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+});
+
+document.getElementById('cal-next').addEventListener('click', () => {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+});
+
+// ── Settings ──
+document.getElementById('goal-input').addEventListener('change', e => {
+  const v = Math.max(1, Math.min(500, parseInt(e.target.value) || 20));
+  e.target.value = v;
+  state.goal = v;
+  store.set('goal', v);
+  updateRing();
+  showToast(`Mål satt till ${v} pushups`);
+});
+
+document.getElementById('sound-toggle').addEventListener('change', e => {
+  state.sound = e.target.checked;
+  store.set('sound', state.sound);
+});
+
+document.getElementById('export-btn').addEventListener('click', () => {
+  const data = JSON.stringify({ goal: state.goal, history: state.history }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pushup-data.json';
+  a.click();
+  showToast('Data exporterad');
+});
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  if (!confirm('Rensa ALL historik? Det går inte att ångra.')) return;
+  state.history = {};
+  store.set('history', {});
+  updateRing();
+  renderCalendar();
+  showToast('All data rensad');
+});
+
+// ── Navigation ──
+document.querySelectorAll('nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const page = document.getElementById(`page-${btn.dataset.page}`);
+    page.classList.add('active');
+    if (btn.dataset.page === 'calendar') renderCalendar();
+  });
+});
+
+// ── Date display ──
+function updateDateDisplay() {
+  const now = new Date();
+  const days = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+  const months = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+  document.getElementById('today-date').textContent =
+    `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+}
+
+// ── PWA Install ──
+let deferredPrompt;
+function showInstallBanner() {
+  const banner = document.getElementById('install-banner');
+  const dismissed = store.get('install-dismissed');
+  if (!dismissed) banner.classList.add('show');
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
+});
+
+async function triggerInstall() {
+  if (!deferredPrompt) { showToast('Använd webbläsarmenyn för att installera'); return; }
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  if (outcome === 'accepted') {
+    document.getElementById('install-banner').classList.remove('show');
+    store.set('install-dismissed', true);
+    showToast('App installerad!');
+  }
+}
+
+document.getElementById('install-btn').addEventListener('click', triggerInstall);
+document.getElementById('settings-install-btn').addEventListener('click', triggerInstall);
+document.getElementById('install-dismiss').addEventListener('click', () => {
+  document.getElementById('install-banner').classList.remove('show');
+  store.set('install-dismissed', true);
+});
+
+// ── Midnight reset check ──
+// No auto-reset — history keeps each day's count separately
+
+// ── Init ──
+function init() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+
+  document.getElementById('goal-input').value = state.goal;
+  document.getElementById('sound-toggle').checked = state.sound;
+  document.getElementById('step-val').textContent = state.stepAmount;
+
+  updateDateDisplay();
+  updateRing();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+}
+
+init();
+</script>
+</body>
+</html>
