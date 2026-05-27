@@ -264,6 +264,48 @@
       gap: 12px;
     }
 
+    .stats-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    /* ── Week overview dots ── */
+    .week-overview { margin-top: 0; }
+
+    .week-dots {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .week-dot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .week-dot-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--surface2);
+    }
+
+    .week-dot-label {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .week-dot.done .week-dot-circle    { background: var(--success); }
+    .week-dot.partial .week-dot-circle { background: rgba(249,115,22,.35); outline: 2px solid var(--primary); outline-offset: 1px; }
+    .week-dot.missed .week-dot-circle  { background: rgba(239,68,68,.18); }
+    .week-dot.future .week-dot-circle  { background: var(--surface2); }
+    .week-dot.today .week-dot-circle   { outline: 2px solid var(--primary); outline-offset: 2px; }
+
     .stat-card {
       background: var(--surface);
       border-radius: var(--radius);
@@ -492,6 +534,23 @@
         <div class="stat-lbl">Dagar</div>
       </div>
     </div>
+    <div class="stats-row-2">
+      <div class="stat-card">
+        <div class="stat-icon">💥</div>
+        <div class="stat-val" id="record-val">0</div>
+        <div class="stat-lbl">Rekord dag</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-val" id="weektotal-val">0</div>
+        <div class="stat-lbl">Veckototal</div>
+      </div>
+    </div>
+
+    <div class="card week-overview">
+      <h2>Den här veckan</h2>
+      <div class="week-dots" id="week-dots"></div>
+    </div>
   </div>
 
   <!-- ── CALENDAR ── -->
@@ -645,7 +704,22 @@ function calcStreak() {
   }
 
   const totalDays = Object.keys(state.history).filter(k => state.history[k] >= state.goal).length;
-  return { streak, best, totalDays };
+
+  const personalBest = Object.values(state.history).reduce((max, v) => Math.max(max, v), 0);
+
+  const todayD = new Date(today);
+  const dow = todayD.getDay();
+  const mondayOffset = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(todayD);
+  monday.setDate(todayD.getDate() + mondayOffset);
+  let weekTotal = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    weekTotal += state.history[d.toISOString().slice(0, 10)] ?? 0;
+  }
+
+  return { streak, best, totalDays, personalBest, weekTotal };
 }
 
 // ── Ring update ──
@@ -665,10 +739,13 @@ function updateRing() {
   const badge = document.getElementById('done-badge');
   badge.classList.toggle('show', count >= state.goal);
 
-  const { streak, best, totalDays } = calcStreak();
+  const { streak, best, totalDays, personalBest, weekTotal } = calcStreak();
   document.getElementById('streak-val').textContent = streak;
   document.getElementById('best-val').textContent = best;
   document.getElementById('total-val').textContent = totalDays;
+  document.getElementById('record-val').textContent = personalBest;
+  document.getElementById('weektotal-val').textContent = weekTotal;
+  renderWeekDots();
 }
 
 // ── Sound ──
@@ -708,6 +785,7 @@ function addPushups(n) {
   prevCount = before;
   const after = before + n;
   setTodayCount(after);
+  if (navigator.vibrate) navigator.vibrate(50);
   updateRing();
   if (before < state.goal && after >= state.goal) {
     showToast('🎉 Mål uppnått! Bra jobbat!');
@@ -957,8 +1035,39 @@ document.getElementById('install-dismiss').addEventListener('click', () => {
   store.set('install-dismissed', true);
 });
 
-// ── Midnight reset check ──
-// No auto-reset — history keeps each day's count separately
+// ── Week dots ──
+function renderWeekDots() {
+  const today = todayKey();
+  const todayD = new Date(today);
+  const dow = todayD.getDay();
+  const mondayOffset = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(todayD);
+  monday.setDate(todayD.getDate() + mondayOffset);
+
+  const labels = ['M','T','O','T','F','L','S'];
+  const container = document.getElementById('week-dots');
+  container.innerHTML = '';
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const k = d.toISOString().slice(0, 10);
+    const count = state.history[k] ?? 0;
+
+    const dot = document.createElement('div');
+    dot.className = 'week-dot';
+
+    if (k > today)               dot.classList.add('future');
+    else if (count >= state.goal) dot.classList.add('done');
+    else if (count > 0)           dot.classList.add('partial');
+    else                          dot.classList.add('missed');
+
+    if (k === today) dot.classList.add('today');
+
+    dot.innerHTML = `<div class="week-dot-circle"></div><div class="week-dot-label">${labels[i]}</div>`;
+    container.appendChild(dot);
+  }
+}
 
 // ── Init ──
 function init() {
@@ -972,6 +1081,7 @@ function init() {
 
   updateDateDisplay();
   updateRing();
+  renderWeekDots();
   renderReminders();
   if (state.reminders.length && Notification.permission === 'default') {
     Notification.requestPermission();
