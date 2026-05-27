@@ -42,6 +42,7 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
 
+    /* ── Nav ── */
     nav {
       display: flex;
       justify-content: space-around;
@@ -73,6 +74,7 @@
     nav button.active { color: var(--primary-light); }
     nav button span.icon { font-size: 22px; }
 
+    /* ── Pages ── */
     main {
       flex: 1;
       overflow-y: auto;
@@ -85,6 +87,7 @@
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
+    /* ── Cards ── */
     .card {
       background: var(--surface);
       border-radius: var(--radius);
@@ -96,6 +99,7 @@
     h2 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
     .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
 
+    /* ── Today page ── */
     .goal-ring-wrap {
       display: flex;
       flex-direction: column;
@@ -149,6 +153,7 @@
 
     .done-badge.show { display: inline-block; }
 
+    /* ── Counter controls ── */
     .controls {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -175,6 +180,7 @@
     .btn-sm { padding: 10px; font-size: 14px; }
     .btn-full { grid-column: 1 / -1; }
 
+    /* Stepper for custom input */
     .stepper {
       display: flex;
       align-items: center;
@@ -225,6 +231,7 @@
 
     .step-btn:active { background: var(--primary); color: white; }
 
+    /* Quick-set row */
     .quick-add {
       display: flex;
       gap: 8px;
@@ -250,11 +257,54 @@
       color: var(--primary-light);
     }
 
+    /* ── Streak stats ── */
     .stats-row {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 12px;
     }
+
+    .stats-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    /* ── Week overview dots ── */
+    .week-overview { margin-top: 0; }
+
+    .week-dots {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .week-dot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .week-dot-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--surface2);
+    }
+
+    .week-dot-label {
+      font-size: 10px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .week-dot.done .week-dot-circle    { background: var(--success); }
+    .week-dot.partial .week-dot-circle { background: rgba(249,115,22,.35); outline: 2px solid var(--primary); outline-offset: 1px; }
+    .week-dot.missed .week-dot-circle  { background: rgba(239,68,68,.18); }
+    .week-dot.future .week-dot-circle  { background: var(--surface2); }
+    .week-dot.today .week-dot-circle   { outline: 2px solid var(--primary); outline-offset: 2px; }
 
     .stat-card {
       background: var(--surface);
@@ -267,8 +317,10 @@
     .stat-val { font-size: 28px; font-weight: 900; }
     .stat-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
     .stat-icon { font-size: 20px; margin-bottom: 4px; }
+
     .streak-fire { color: var(--warning); }
 
+    /* ── Calendar ── */
     .cal-header {
       display: flex;
       align-items: center;
@@ -277,6 +329,7 @@
     }
 
     .cal-nav { background: none; border: none; color: var(--text); font-size: 22px; cursor: pointer; padding: 4px 10px; }
+
     .cal-month { font-size: 18px; font-weight: 700; }
 
     .cal-grid {
@@ -301,14 +354,17 @@
       justify-content: center;
       font-size: 13px;
       font-weight: 600;
+      position: relative;
     }
 
+    .cal-day.empty { }
     .cal-day.future { color: var(--surface2); }
     .cal-day.missed { background: rgba(239,68,68,.15); color: var(--danger); }
     .cal-day.done   { background: rgba(249,115,22,.22); color: var(--primary-light); }
     .cal-day.done.full { background: var(--success); color: white; }
     .cal-day.today  { outline: 2px solid var(--primary); outline-offset: 1px; }
 
+    /* ── Settings ── */
     .setting-row {
       display: flex;
       align-items: center;
@@ -318,6 +374,7 @@
     }
 
     .setting-row:last-child { border-bottom: none; }
+
     .setting-label { font-weight: 600; }
     .setting-sub   { font-size: 13px; color: var(--muted); margin-top: 2px; }
 
@@ -335,6 +392,7 @@
 
     .number-input:focus { outline: 2px solid var(--primary); }
 
+    /* Toggle */
     .toggle {
       position: relative;
       width: 46px;
@@ -367,6 +425,7 @@
 
     .toggle input:checked ~ .toggle-thumb { left: 23px; }
 
+    /* ── Toast ── */
     #toast {
       position: fixed;
       bottom: 90px;
@@ -387,6 +446,7 @@
 
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* ── Install banner ── */
     #install-banner {
       background: linear-gradient(135deg, var(--primary), #dc2626);
       border-radius: var(--radius);
@@ -406,6 +466,7 @@
 <body>
 
 <main>
+  <!-- ── TODAY ── -->
   <div class="page active" id="page-today">
     <h1>Pushup Tracker 💪</h1>
     <p class="subtitle" id="today-date"></p>
@@ -473,8 +534,26 @@
         <div class="stat-lbl">Dagar</div>
       </div>
     </div>
+    <div class="stats-row-2">
+      <div class="stat-card">
+        <div class="stat-icon">💥</div>
+        <div class="stat-val" id="record-val">0</div>
+        <div class="stat-lbl">Rekord dag</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-val" id="weektotal-val">0</div>
+        <div class="stat-lbl">Veckototal</div>
+      </div>
+    </div>
+
+    <div class="card week-overview">
+      <h2>Den här veckan</h2>
+      <div class="week-dots" id="week-dots"></div>
+    </div>
   </div>
 
+  <!-- ── CALENDAR ── -->
   <div class="page" id="page-calendar">
     <h1>Kalender</h1>
     <p class="subtitle">Se dina genomförda dagar</p>
@@ -496,6 +575,7 @@
     </div>
   </div>
 
+  <!-- ── SETTINGS ── -->
   <div class="page" id="page-settings">
     <h1>Inställningar</h1>
     <p class="subtitle">Anpassa din träning</p>
@@ -541,6 +621,7 @@
   </div>
 </main>
 
+<!-- Bottom nav -->
 <nav>
   <button class="active" data-page="today">
     <span class="icon">🏠</span>
@@ -559,11 +640,13 @@
 <div id="toast"></div>
 
 <script>
+// ── Storage helpers ──
 const store = {
   get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
   set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
 };
 
+// ── State ──
 const state = {
   goal: store.get('goal') ?? 20,
   history: store.get('history') ?? {},
@@ -586,16 +669,21 @@ function setTodayCount(n) {
   store.set('history', state.history);
 }
 
+// ── Streak calculation ──
 function calcStreak() {
   const keys = Object.keys(state.history).sort();
   const today = todayKey();
-  let best = 0, cur = 0, prev = null;
+  let streak = 0;
+  let best = 0;
+  let cur = 0;
+  let prev = null;
 
   for (const k of keys) {
     const met = state.history[k] >= state.goal;
     if (met) {
       if (prev) {
-        const diff = (new Date(k) - new Date(prev)) / 86400000;
+        const d1 = new Date(prev), d2 = new Date(k);
+        const diff = (d2 - d1) / 86400000;
         if (diff === 1) { cur++; } else { cur = 1; }
       } else { cur = 1; }
       if (cur > best) best = cur;
@@ -603,7 +691,8 @@ function calcStreak() {
     prev = k;
   }
 
-  let streak = 0;
+  // current streak: count backwards from today
+  streak = 0;
   const checkDate = new Date(today);
   while (true) {
     const k = checkDate.toISOString().slice(0, 10);
@@ -614,24 +703,52 @@ function calcStreak() {
     if (streak > 400) break;
   }
 
-  return { streak, best, totalDays: Object.keys(state.history).filter(k => state.history[k] >= state.goal).length };
+  const totalDays = Object.keys(state.history).filter(k => state.history[k] >= state.goal).length;
+
+  const personalBest = Object.values(state.history).reduce((max, v) => Math.max(max, v), 0);
+
+  const todayD = new Date(today);
+  const dow = todayD.getDay();
+  const mondayOffset = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(todayD);
+  monday.setDate(todayD.getDate() + mondayOffset);
+  let weekTotal = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    weekTotal += state.history[d.toISOString().slice(0, 10)] ?? 0;
+  }
+
+  return { streak, best, totalDays, personalBest, weekTotal };
 }
 
+// ── Ring update ──
 function updateRing() {
   const count = todayCount();
   const pct = Math.min(count / state.goal, 1);
+  const circumference = 2 * Math.PI * 80; // 502.65
+  const offset = circumference * (1 - pct);
+
   const ring = document.getElementById('ring');
-  ring.style.strokeDashoffset = 2 * Math.PI * 80 * (1 - pct);
+  ring.style.strokeDashoffset = offset;
   ring.classList.toggle('complete', count >= state.goal);
+
   document.getElementById('count-display').textContent = count;
   document.getElementById('goal-display').textContent = `av ${state.goal}`;
-  document.getElementById('done-badge').classList.toggle('show', count >= state.goal);
-  const { streak, best, totalDays } = calcStreak();
+
+  const badge = document.getElementById('done-badge');
+  badge.classList.toggle('show', count >= state.goal);
+
+  const { streak, best, totalDays, personalBest, weekTotal } = calcStreak();
   document.getElementById('streak-val').textContent = streak;
   document.getElementById('best-val').textContent = best;
   document.getElementById('total-val').textContent = totalDays;
+  document.getElementById('record-val').textContent = personalBest;
+  document.getElementById('weektotal-val').textContent = weekTotal;
+  renderWeekDots();
 }
 
+// ── Sound ──
 function playSuccess() {
   if (!state.sound) return;
   try {
@@ -640,7 +757,8 @@ function playSuccess() {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.value = freq; osc.type = 'sine';
+      osc.frequency.value = freq;
+      osc.type = 'sine';
       gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.1);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.2);
       osc.start(ctx.currentTime + i * 0.1);
@@ -649,6 +767,7 @@ function playSuccess() {
   } catch {}
 }
 
+// ── Toast ──
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -658,6 +777,7 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
 }
 
+// ── Add pushups ──
 let prevCount = 0;
 
 function addPushups(n) {
@@ -665,6 +785,7 @@ function addPushups(n) {
   prevCount = before;
   const after = before + n;
   setTodayCount(after);
+  if (navigator.vibrate) navigator.vibrate(50);
   updateRing();
   if (before < state.goal && after >= state.goal) {
     showToast('🎉 Mål uppnått! Bra jobbat!');
@@ -674,6 +795,7 @@ function addPushups(n) {
   }
 }
 
+// ── Today page events ──
 document.getElementById('step-plus').addEventListener('click', () => {
   state.stepAmount = Math.min(state.stepAmount + 1, 999);
   document.getElementById('step-val').textContent = state.stepAmount;
@@ -707,60 +829,96 @@ document.getElementById('reset-btn').addEventListener('click', () => {
   showToast('Nollställd');
 });
 
+// ── Calendar ──
 let calYear, calMonth;
 
 function renderCalendar() {
+  const now = new Date();
   const today = todayKey();
   const firstDay = new Date(calYear, calMonth, 1);
   const lastDay = new Date(calYear, calMonth + 1, 0);
+
   const monthNames = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
   document.getElementById('cal-month-label').textContent = `${monthNames[calMonth]} ${calYear}`;
+
   const grid = document.getElementById('cal-grid');
   grid.innerHTML = '';
+
   ['M','T','O','T','F','L','S'].forEach(d => {
     const el = document.createElement('div');
-    el.className = 'cal-day-name'; el.textContent = d;
+    el.className = 'cal-day-name';
+    el.textContent = d;
     grid.appendChild(el);
   });
-  let startDow = firstDay.getDay();
+
+  // Monday-first: getDay() 0=Sun → 6
+  let startDow = firstDay.getDay(); // 0=Sun
   startDow = startDow === 0 ? 6 : startDow - 1;
+
   for (let i = 0; i < startDow; i++) {
     const el = document.createElement('div');
-    el.className = 'cal-day empty'; grid.appendChild(el);
+    el.className = 'cal-day empty';
+    grid.appendChild(el);
   }
+
   for (let d = 1; d <= lastDay.getDate(); d++) {
     const key = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const el = document.createElement('div');
-    el.className = 'cal-day'; el.textContent = d;
+    el.className = 'cal-day';
+    el.textContent = d;
+
     const count = state.history[key] ?? 0;
     const isFuture = key > today;
-    if (key === today) el.classList.add('today');
+    const isToday = key === today;
+
+    if (isToday) el.classList.add('today');
+
     if (!isFuture) {
-      if (count >= state.goal) { el.classList.add('done','full'); el.title = `${count} pushups ✓`; }
-      else if (count > 0) { el.classList.add('done'); el.title = `${count} pushups`; }
-      else if (key < today) el.classList.add('missed');
-    } else { el.classList.add('future'); }
+      if (count >= state.goal) {
+        el.classList.add('done', 'full');
+        el.title = `${count} pushups ✓`;
+      } else if (count > 0) {
+        el.classList.add('done');
+        el.title = `${count} pushups`;
+      } else if (key < today) {
+        el.classList.add('missed');
+      }
+    } else {
+      el.classList.add('future');
+    }
+
     grid.appendChild(el);
   }
 }
 
 document.getElementById('cal-prev').addEventListener('click', () => {
-  calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar();
-});
-document.getElementById('cal-next').addEventListener('click', () => {
-  calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar();
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
 });
 
+document.getElementById('cal-next').addEventListener('click', () => {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+});
+
+// ── Settings ──
 document.getElementById('goal-input').addEventListener('change', e => {
   const v = Math.max(1, Math.min(500, parseInt(e.target.value) || 20));
-  e.target.value = v; state.goal = v; store.set('goal', v); updateRing();
+  e.target.value = v;
+  state.goal = v;
+  store.set('goal', v);
+  updateRing();
   showToast(`Mål satt till ${v} pushups`);
 });
 
 document.getElementById('sound-toggle').addEventListener('change', e => {
-  state.sound = e.target.checked; store.set('sound', state.sound);
+  state.sound = e.target.checked;
+  store.set('sound', state.sound);
 });
 
+// ── Reminders ──
 function renderReminders() {
   const list = document.getElementById('reminder-list');
   list.innerHTML = '';
@@ -789,7 +947,8 @@ document.getElementById('reminder-add-btn').addEventListener('click', () => {
 });
 
 function checkReminders() {
-  if (!state.reminders.length || Notification.permission !== 'granted') return;
+  if (!state.reminders.length) return;
+  if (Notification.permission !== 'granted') return;
   const now = new Date();
   const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   const today = todayKey();
@@ -816,32 +975,46 @@ document.getElementById('export-btn').addEventListener('click', () => {
 
 document.getElementById('clear-btn').addEventListener('click', () => {
   if (!confirm('Rensa ALL historik? Det går inte att ångra.')) return;
-  state.history = {}; store.set('history', {});
-  updateRing(); renderCalendar();
+  state.history = {};
+  store.set('history', {});
+  updateRing();
+  renderCalendar();
   showToast('All data rensad');
 });
 
+// ── Navigation ──
 document.querySelectorAll('nav button').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(`page-${btn.dataset.page}`).classList.add('active');
+    const page = document.getElementById(`page-${btn.dataset.page}`);
+    page.classList.add('active');
     if (btn.dataset.page === 'calendar') renderCalendar();
   });
 });
 
+// ── Date display ──
 function updateDateDisplay() {
   const now = new Date();
   const days = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
   const months = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
-  document.getElementById('today-date').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+  document.getElementById('today-date').textContent =
+    `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
 }
 
+// ── PWA Install ──
 let deferredPrompt;
+function showInstallBanner() {
+  const banner = document.getElementById('install-banner');
+  const dismissed = store.get('install-dismissed');
+  if (!dismissed) banner.classList.add('show');
+}
+
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); deferredPrompt = e;
-  if (!store.get('install-dismissed')) document.getElementById('install-banner').classList.add('show');
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallBanner();
 });
 
 async function triggerInstall() {
@@ -862,18 +1035,61 @@ document.getElementById('install-dismiss').addEventListener('click', () => {
   store.set('install-dismissed', true);
 });
 
+// ── Week dots ──
+function renderWeekDots() {
+  const today = todayKey();
+  const todayD = new Date(today);
+  const dow = todayD.getDay();
+  const mondayOffset = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(todayD);
+  monday.setDate(todayD.getDate() + mondayOffset);
+
+  const labels = ['M','T','O','T','F','L','S'];
+  const container = document.getElementById('week-dots');
+  container.innerHTML = '';
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const k = d.toISOString().slice(0, 10);
+    const count = state.history[k] ?? 0;
+
+    const dot = document.createElement('div');
+    dot.className = 'week-dot';
+
+    if (k > today)               dot.classList.add('future');
+    else if (count >= state.goal) dot.classList.add('done');
+    else if (count > 0)           dot.classList.add('partial');
+    else                          dot.classList.add('missed');
+
+    if (k === today) dot.classList.add('today');
+
+    dot.innerHTML = `<div class="week-dot-circle"></div><div class="week-dot-label">${labels[i]}</div>`;
+    container.appendChild(dot);
+  }
+}
+
+// ── Init ──
 function init() {
   const now = new Date();
   calYear = now.getFullYear();
   calMonth = now.getMonth();
+
   document.getElementById('goal-input').value = state.goal;
   document.getElementById('sound-toggle').checked = state.sound;
   document.getElementById('step-val').textContent = state.stepAmount;
+
   updateDateDisplay();
   updateRing();
+  renderWeekDots();
   renderReminders();
-  if (state.reminders.length && Notification.permission === 'default') Notification.requestPermission();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (state.reminders.length && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 }
 
 init();
