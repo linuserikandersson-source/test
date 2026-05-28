@@ -266,7 +266,7 @@
 
     .stats-row-2 {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 12px;
       margin-top: 12px;
     }
@@ -545,6 +545,11 @@
         <div class="stat-val" id="weektotal-val">0</div>
         <div class="stat-lbl">Veckototal</div>
       </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔢</div>
+        <div class="stat-val" id="alltotal-val">0</div>
+        <div class="stat-lbl">Totalt</div>
+      </div>
     </div>
 
     <div class="card week-overview">
@@ -706,6 +711,7 @@ function calcStreak() {
   const totalDays = Object.keys(state.history).filter(k => state.history[k] >= state.goal).length;
 
   const personalBest = Object.values(state.history).reduce((max, v) => Math.max(max, v), 0);
+  const allTimeTotal = Object.values(state.history).reduce((sum, v) => sum + v, 0);
 
   const todayD = new Date(today);
   const dow = todayD.getDay();
@@ -719,7 +725,7 @@ function calcStreak() {
     weekTotal += state.history[d.toISOString().slice(0, 10)] ?? 0;
   }
 
-  return { streak, best, totalDays, personalBest, weekTotal };
+  return { streak, best, totalDays, personalBest, weekTotal, allTimeTotal };
 }
 
 // ── Ring update ──
@@ -739,12 +745,13 @@ function updateRing() {
   const badge = document.getElementById('done-badge');
   badge.classList.toggle('show', count >= state.goal);
 
-  const { streak, best, totalDays, personalBest, weekTotal } = calcStreak();
+  const { streak, best, totalDays, personalBest, weekTotal, allTimeTotal } = calcStreak();
   document.getElementById('streak-val').textContent = streak;
   document.getElementById('best-val').textContent = best;
   document.getElementById('total-val').textContent = totalDays;
   document.getElementById('record-val').textContent = personalBest;
   document.getElementById('weektotal-val').textContent = weekTotal;
+  document.getElementById('alltotal-val').textContent = allTimeTotal;
   renderWeekDots();
 }
 
