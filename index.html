@@ -180,6 +180,41 @@
     .btn-sm { padding: 10px; font-size: 14px; }
     .btn-full { grid-column: 1 / -1; }
 
+    /* ── Simple counter box ── */
+    .counter-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+    }
+
+    .counter-value {
+      font-size: 56px;
+      font-weight: 900;
+      line-height: 1;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .counter-plus-btn {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: none;
+      background: var(--primary);
+      color: white;
+      font-size: 32px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .1s;
+    }
+
+    .counter-plus-btn:active { transform: scale(.92); }
+
     /* Stepper for custom input */
     .stepper {
       display: flex;
@@ -495,6 +530,14 @@
     </div>
 
     <div class="card">
+      <h2>Räknare</h2>
+      <div class="counter-box">
+        <span class="counter-value" id="simple-counter-val">0</span>
+        <button class="counter-plus-btn" id="simple-counter-plus">+</button>
+      </div>
+    </div>
+
+    <div class="card">
       <h2>Logga pushups</h2>
       <div class="stepper">
         <button class="step-btn" id="step-minus">−</button>
@@ -802,6 +845,19 @@ function addPushups(n) {
   }
 }
 
+// ── Simple counter box ──
+let simpleCounter = store.get('simpleCounter') ?? 0;
+
+function updateSimpleCounterDisplay() {
+  document.getElementById('simple-counter-val').textContent = simpleCounter;
+}
+
+document.getElementById('simple-counter-plus').addEventListener('click', () => {
+  simpleCounter++;
+  store.set('simpleCounter', simpleCounter);
+  updateSimpleCounterDisplay();
+});
+
 // ── Today page events ──
 document.getElementById('step-plus').addEventListener('click', () => {
   state.stepAmount = Math.min(state.stepAmount + 1, 999);
@@ -1087,6 +1143,7 @@ function init() {
   document.getElementById('step-val').textContent = state.stepAmount;
 
   updateDateDisplay();
+  updateSimpleCounterDisplay();
   updateRing();
   renderWeekDots();
   renderReminders();
