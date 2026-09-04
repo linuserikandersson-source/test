@@ -4,8 +4,8 @@
   "description": "Tracka dina dagliga pushups och bygg upp din streak",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#6366f1",
+  "background_color": "#12100e",
+  "theme_color": "#12100e",
   "orientation": "portrait",
   "icons": [
     {
