@@ -1054,8 +1054,19 @@ const state = {
   lastNotified: store.get('lastNotified') ?? {},
 };
 
+// Date keys must be local. toISOString() is UTC, so east of Greenwich the
+// first hours after local midnight still resolve to yesterday's key.
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function parseKey(k) {
+  const [y, m, d] = k.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+  return dateKey(new Date());
 }
 
 function todayCount() {
@@ -1080,8 +1091,8 @@ function calcStreak() {
     const met = state.history[k] >= state.goal;
     if (met) {
       if (prev) {
-        const d1 = new Date(prev), d2 = new Date(k);
-        const diff = (d2 - d1) / 86400000;
+        const d1 = parseKey(prev), d2 = parseKey(k);
+        const diff = Math.round((d2 - d1) / 86400000); // round: DST days aren't 24h
         if (diff === 1) { cur++; } else { cur = 1; }
       } else { cur = 1; }
       if (cur > best) best = cur;
@@ -1091,9 +1102,9 @@ function calcStreak() {
 
   // current streak: count backwards from today
   streak = 0;
-  const checkDate = new Date(today);
+  const checkDate = parseKey(today);
   while (true) {
-    const k = checkDate.toISOString().slice(0, 10);
+    const k = dateKey(checkDate);
     const met = (state.history[k] ?? 0) >= state.goal;
     if (!met && k !== today) break;
     if (met) streak++;
@@ -1106,7 +1117,7 @@ function calcStreak() {
   const personalBest = Object.values(state.history).reduce((max, v) => Math.max(max, v), 0);
   const allTimeTotal = Object.values(state.history).reduce((sum, v) => sum + v, 0);
 
-  const todayD = new Date(today);
+  const todayD = parseKey(today);
   const dow = todayD.getDay();
   const mondayOffset = dow === 0 ? -6 : 1 - dow;
   const monday = new Date(todayD);
@@ -1115,7 +1126,7 @@ function calcStreak() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    weekTotal += state.history[d.toISOString().slice(0, 10)] ?? 0;
+    weekTotal += state.history[dateKey(d)] ?? 0;
   }
 
   return { streak, best, totalDays, personalBest, weekTotal, allTimeTotal };
@@ -1485,7 +1496,7 @@ document.getElementById('install-dismiss').addEventListener('click', () => {
 // ── Week dots ──
 function renderWeekDots() {
   const today = todayKey();
-  const todayD = new Date(today);
+  const todayD = parseKey(today);
   const dow = todayD.getDay();
   const mondayOffset = dow === 0 ? -6 : 1 - dow;
   const monday = new Date(todayD);
@@ -1498,7 +1509,7 @@ function renderWeekDots() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    const k = d.toISOString().slice(0, 10);
+    const k = dateKey(d);
     const count = state.history[k] ?? 0;
 
     const dot = document.createElement('div');
