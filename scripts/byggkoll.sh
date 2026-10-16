@@ -45,6 +45,34 @@ const meta = html.match(/<meta name="theme-color" content="([^"]+)"/);
 if (manifest && meta && manifest.theme_color.toLowerCase() !== meta[1].toLowerCase())
   varn(`theme_color i manifest.json (${manifest.theme_color}) skiljer sig från index.html (${meta[1]})`);
 
+// 7. background_color i manifestet matchar appens --bg
+const bg = html.match(/--bg:\s*(#[0-9a-fA-F]{3,8})/);
+if (manifest && bg && manifest.background_color.toLowerCase() !== bg[1].toLowerCase())
+  varn(`background_color i manifest.json (${manifest.background_color}) skiljer sig från --bg i index.html (${bg[1]})`);
+
+// 8. Ikonernas bakgrundsfärg matchar theme-color
+if (meta) for (const f of ['icon-192.svg', 'icon-512.svg']) {
+  if (!fs.existsSync(f)) continue;
+  const fill = fs.readFileSync(f, 'utf8').match(/<rect[^>]*fill="(#[0-9a-fA-F]{3,8})"/);
+  if (fill && fill[1].toLowerCase() !== meta[1].toLowerCase())
+    varn(`${f} har bakgrund ${fill[1]} men theme-color är ${meta[1]}`);
+}
+
+// 9. Absoluta sökvägar bryter appen om den ligger i en undermapp (t.ex. GitHub Pages)
+if (manifest && manifest.start_url === '/')
+  varn('manifest.json start_url är "/" – bryter om appen hostas i en undermapp (använd "./")');
+if (assets && /'\/[^']*'/.test(assets[1]))
+  varn('sw.js ASSETS använder absoluta sökvägar ("/...") – bryter i undermapp (använd "./...")');
+
+// 10. apple-touch-icon måste vara PNG på iOS, SVG ignoreras
+const touch = html.match(/<link rel="apple-touch-icon" href="([^"]+)"/);
+if (touch && /\.svg$/i.test(touch[1]))
+  varn(`apple-touch-icon pekar på SVG (${touch[1]}) – iOS ignorerar det, använd PNG`);
+
+// 11. localStorage.setItem utan try/catch kraschar i privat läge / full lagring
+if (/set:\s*\(k, v\)\s*=>\s*localStorage\.setItem/.test(html))
+  varn('storage.set anropar localStorage.setItem utan try/catch');
+
 console.log(`\n${errors} fel, ${warnings} varningar`);
 process.exit(errors ? 1 : 0);
 JS
