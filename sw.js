@@ -1,4 +1,4 @@
-const CACHE = 'pushup-tracker-v7';
+const CACHE = 'pushup-tracker-v8';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.svg', './icon-512.svg', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

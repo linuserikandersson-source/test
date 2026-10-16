@@ -795,7 +795,7 @@ function showToast(msg) {
 }
 
 // ── Add pushups ──
-let prevCount = 0;
+let prevCount = null;
 
 function addPushups(n) {
   const before = todayCount();
@@ -833,7 +833,9 @@ document.querySelectorAll('.quick-btn').forEach(btn => {
 });
 
 document.getElementById('undo-btn').addEventListener('click', () => {
+  if (prevCount === null) return;
   setTodayCount(prevCount);
+  prevCount = null;
   updateRing();
   showToast('Ångrad');
 });
@@ -850,7 +852,6 @@ document.getElementById('reset-btn').addEventListener('click', () => {
 let calYear, calMonth;
 
 function renderCalendar() {
-  const now = new Date();
   const today = todayKey();
   const firstDay = new Date(calYear, calMonth, 1);
   const lastDay = new Date(calYear, calMonth + 1, 0);
@@ -1099,7 +1100,6 @@ function init() {
 
   updateDateDisplay();
   updateRing();
-  renderWeekDots();
   renderReminders();
   if (state.reminders.length && 'Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
