@@ -2,9 +2,9 @@
   "name": "Pushup Tracker",
   "short_name": "Pushups",
   "description": "Tracka dina dagliga pushups och bygg upp din streak",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#171412",
   "theme_color": "#f97316",
   "orientation": "portrait",
   "icons": [

@@ -1,5 +1,5 @@
-const CACHE = 'pushup-tracker-v5';
-const ASSETS = ['/', '/index.html', '/manifest.json', '/icon-192.svg', '/icon-512.svg'];
+const CACHE = 'pushup-tracker-v7';
+const ASSETS = ['./', './index.html', './manifest.json', './icon-192.svg', './icon-512.svg', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));

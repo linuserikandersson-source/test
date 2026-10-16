@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Pushups"/>
   <link rel="manifest" href="manifest.json"/>
-  <link rel="apple-touch-icon" href="icon-192.svg"/>
+  <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
   <title>Pushup Tracker</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -648,7 +648,7 @@
 // ── Storage helpers ──
 const store = {
   get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
-  set: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
 };
 
 // ── State ──
@@ -661,8 +661,18 @@ const state = {
   lastNotified: store.get('lastNotified') ?? {},
 };
 
+// Lokal datumnyckel (toISOString ger UTC och blir fel nära midnatt)
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function parseKey(k) {
+  const [y, m, d] = k.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+  return dateKey(new Date());
 }
 
 function todayCount() {
@@ -687,8 +697,8 @@ function calcStreak() {
     const met = state.history[k] >= state.goal;
     if (met) {
       if (prev) {
-        const d1 = new Date(prev), d2 = new Date(k);
-        const diff = (d2 - d1) / 86400000;
+        const d1 = parseKey(prev), d2 = parseKey(k);
+        const diff = Math.round((d2 - d1) / 86400000);
         if (diff === 1) { cur++; } else { cur = 1; }
       } else { cur = 1; }
       if (cur > best) best = cur;
@@ -698,9 +708,9 @@ function calcStreak() {
 
   // current streak: count backwards from today
   streak = 0;
-  const checkDate = new Date(today);
+  const checkDate = parseKey(today);
   while (true) {
-    const k = checkDate.toISOString().slice(0, 10);
+    const k = dateKey(checkDate);
     const met = (state.history[k] ?? 0) >= state.goal;
     if (!met && k !== today) break;
     if (met) streak++;
@@ -713,7 +723,7 @@ function calcStreak() {
   const personalBest = Object.values(state.history).reduce((max, v) => Math.max(max, v), 0);
   const allTimeTotal = Object.values(state.history).reduce((sum, v) => sum + v, 0);
 
-  const todayD = new Date(today);
+  const todayD = parseKey(today);
   const dow = todayD.getDay();
   const mondayOffset = dow === 0 ? -6 : 1 - dow;
   const monday = new Date(todayD);
@@ -722,7 +732,7 @@ function calcStreak() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    weekTotal += state.history[d.toISOString().slice(0, 10)] ?? 0;
+    weekTotal += state.history[dateKey(d)] ?? 0;
   }
 
   return { streak, best, totalDays, personalBest, weekTotal, allTimeTotal };
@@ -932,7 +942,8 @@ function renderReminders() {
   state.reminders.forEach((time, i) => {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:10px;padding:10px 14px;';
-    row.innerHTML = `<span style="font-weight:700;font-size:16px">${time}</span><button style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px" data-i="${i}">✕</button>`;
+    row.innerHTML = `<span style="font-weight:700;font-size:16px"></span><button style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px" data-i="${i}">✕</button>`;
+    row.querySelector('span').textContent = time;
     row.querySelector('button').addEventListener('click', () => {
       state.reminders.splice(i, 1);
       store.set('reminders', state.reminders);
@@ -950,18 +961,18 @@ document.getElementById('reminder-add-btn').addEventListener('click', () => {
   state.reminders.sort();
   store.set('reminders', state.reminders);
   renderReminders();
-  if (Notification.permission === 'default') Notification.requestPermission();
+  if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 });
 
 function checkReminders() {
   if (!state.reminders.length) return;
-  if (Notification.permission !== 'granted') return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
   const now = new Date();
   const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   const today = todayKey();
   state.reminders.forEach(t => {
     if (t === hhmm && state.lastNotified[t] !== today && todayCount() < state.goal) {
-      new Notification('Pushup Tracker 💪', { body: 'Dags för dina pushups!', icon: '/test/icon-192.svg' });
+      new Notification('Pushup Tracker 💪', { body: 'Dags för dina pushups!', icon: 'icon-192.svg' });
       state.lastNotified[t] = today;
       store.set('lastNotified', state.lastNotified);
     }
@@ -1045,7 +1056,7 @@ document.getElementById('install-dismiss').addEventListener('click', () => {
 // ── Week dots ──
 function renderWeekDots() {
   const today = todayKey();
-  const todayD = new Date(today);
+  const todayD = parseKey(today);
   const dow = todayD.getDay();
   const mondayOffset = dow === 0 ? -6 : 1 - dow;
   const monday = new Date(todayD);
@@ -1058,7 +1069,7 @@ function renderWeekDots() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    const k = d.toISOString().slice(0, 10);
+    const k = dateKey(d);
     const count = state.history[k] ?? 0;
 
     const dot = document.createElement('div');
@@ -1090,7 +1101,7 @@ function init() {
   updateRing();
   renderWeekDots();
   renderReminders();
-  if (state.reminders.length && Notification.permission === 'default') {
+  if (state.reminders.length && 'Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
   }
 
